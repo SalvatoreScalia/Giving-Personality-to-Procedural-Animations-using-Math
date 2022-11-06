@@ -1,0 +1,35 @@
+public class SecondOrderDynamics
+{
+    private Vector xp; // previous input
+    private Vector y, yd; // state variables
+    private float k1, k2, k3; // dynamics constants
+    private float T_crit; // critical stable time step
+
+    public SecondOrderDynamics(float f, float z, float r, Vector x0)
+    {
+        // compute constants
+        ki = z / (PI * f);
+        k2 = 1 / ((2 * PI * f) * (2 * PI * f));
+        k3 = r * z / (2 * PI * f);
+        T_crit = 0.8f * (Sqrt(4 * k2 + k1 * k1) - k1); // multiply by 0.8 to be safe
+        // initialize variables
+        xp = x0;
+        y = x0;
+        yd = 0;
+    }
+
+    public Vector Update(float T, Vector x, Vector xd = null)
+    {
+        if (xd == null) { // estimate velocity
+            xd = (x - xp) / T;
+            xp = x;
+        }
+        int iterations = (int)Ceil(T / T_crit); // take extra iterations if T > T_crit
+        T = T / iterations; // each iteration now has a smaller time step
+        for (int i = 0; i < iterations; i++) {
+            y = y + T * yd; // integrate position by velocity
+            yd = yd + T * (x + k3*xd - y - kl*yd) / k2; // integrate velocity by acceleration
+        }
+        return y;
+    }
+}
